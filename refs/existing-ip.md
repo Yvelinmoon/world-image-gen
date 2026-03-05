@@ -6,15 +6,34 @@
 
 ---
 
-## Step 1：搜索参考图
+## Step 1：搜索并提取真实图片 URL
+
+**WebSearch 只返回网页链接，不是图片直链。必须执行以下两步才能拿到可用的图片 URL：**
+
+**① WebSearch 找到目标页面**
 
 ```
-WebSearch: "[IP名称] [角色名] official art / concept art"
-WebSearch: "[IP名称] [角色名] 官方设定图 / 游戏截图"
+WebSearch: "[IP名称] [角色名] official art site:fandom.com"
+WebSearch: "[IP名称] [角色名] 官方设定图 wiki"
 ```
 
-优先选：官方宣传图、概念设定图、高清游戏截图、模型渲染图。
-避免：同人图（风格不一致）、低分辨率缩略图。
+优先目标：Fandom wiki（`*.fandom.com`）、官方网站、游戏数据库。
+避免：同人图站（风格不一致）、社交媒体（图片 URL 无法直接访问）。
+
+**② WebFetch 目标页面，提取真实图片 URL**
+
+从搜索结果中取最有可能有高清原图的链接，用 WebFetch 访问该页面：
+
+```
+WebFetch [wiki页面URL]  ← 在返回的 HTML 中找 og:image 或 <img src="...">
+```
+
+Fandom wiki 的图片 URL 通常格式为：
+```
+https://static.wikia.nocookie.net/[游戏名]/images/...
+```
+
+这才是可以直接 curl 下载或传给工具的图片直链。若页面没有高清图，换另一个搜索结果重试。
 
 ---
 
