@@ -8,32 +8,39 @@
 
 ## Step 1：搜索并提取真实图片 URL
 
-**WebSearch 只返回网页链接，不是图片直链。必须执行以下两步才能拿到可用的图片 URL：**
+**首选来源：Fandom wiki**（`*.fandom.com`）
 
-**① WebSearch 找到目标页面**
+- 覆盖几乎所有主流 IP（游戏、动漫、影视）
+- 图片托管于 `static.wikia.nocookie.net`，无需登录，可直接 curl 下载
+- 角色页面的 `og:image` meta 标签即为该角色官方主图，一次 WebFetch 即可提取
 
-```
-WebSearch: "[IP名称] [角色名] official art site:fandom.com"
-WebSearch: "[IP名称] [角色名] 官方设定图 wiki"
-```
+**两步固定流程，不可跳过：**
 
-优先目标：Fandom wiki（`*.fandom.com`）、官方网站、游戏数据库。
-避免：同人图站（风格不一致）、社交媒体（图片 URL 无法直接访问）。
-
-**② WebFetch 目标页面，提取真实图片 URL**
-
-从搜索结果中取最有可能有高清原图的链接，用 WebFetch 访问该页面：
+**① WebSearch 直接定位角色的 Fandom wiki 页面**
 
 ```
-WebFetch [wiki页面URL]  ← 在返回的 HTML 中找 og:image 或 <img src="...">
+WebSearch: "[角色名] [IP名称] site:fandom.com"
 ```
 
-Fandom wiki 的图片 URL 通常格式为：
+从结果中取角色专属页面（URL 格式：`https://[ip].fandom.com/wiki/[角色名]`）。
+
+**② WebFetch 该页面，提取 og:image 的值**
+
 ```
-https://static.wikia.nocookie.net/[游戏名]/images/...
+WebFetch [角色wiki页面URL]
 ```
 
-这才是可以直接 curl 下载或传给工具的图片直链。若页面没有高清图，换另一个搜索结果重试。
+在返回内容中找：
+```html
+<meta property="og:image" content="https://static.wikia.nocookie.net/..."/>
+```
+
+`content` 的值就是可直接使用的图片直链。若 `og:image` 指向的是低分辨率图，在页面的角色信息框（infobox）的 `<img src="...">` 中找高分辨率版本。
+
+**Fandom 找不到时的备选顺序：**
+1. 游戏 / 动漫官网角色页
+2. 该 IP 的专属独立 wiki（如 Bulbapedia、Fire Emblem Wiki 等）
+3. 以上都失败 → 跳至文末"搜索失败降级方案"
 
 ---
 
